@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคำนวณสัดส่วนอาหาร</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" xintegrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gDivoOuCg3eDviPQeDa1fsyw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden">
+        <div id="calculator-form">
+            <div class="p-8">
+                <h1 class="text-3xl font-bold text-center text-blue-700 mb-2">เครื่องคำนวณสัดส่วนอาหาร</h1>
+                <p class="text-center text-gray-600 mb-8">กรอกข้อมูลของคุณเพื่อเริ่มต้น</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block mb-2 text-sm font-medium text-gray-700">ชื่อ</label>
+                        <input type="text" id="name" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="ชื่อของคุณ">
+                    </div>
+                    <div>
+                        <label for="gender" class="block mb-2 text-sm font-medium text-gray-700">เพศ</label>
+                        <select id="gender" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300">
+                            <option value="male">ชาย</option>
+                            <option value="female">หญิง</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="weight" class="block mb-2 text-sm font-medium text-gray-700">น้ำหนัก (kg) <span class="text-red-600">*</span></label>
+                        <input type="number" id="weight" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="เช่น 60">
+                    </div>
+                    <div>
+                        <label for="fat_percent" class="block mb-2 text-sm font-medium text-gray-700">เปอร์เซ็นต์ไขมัน (%) <span class="text-red-600">*</span></label>
+                        <input type="number" id="fat_percent" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="เช่น 15">
+                    </div>
+                    <div>
+                        <label for="height" class="block mb-2 text-sm font-medium text-gray-700">ส่วนสูง (cm) (ถ้าไม่ทราบ BMI)</label>
+                        <input type="number" id="height" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="เช่น 175">
+                    </div>
+                     <div>
+                        <label for="bmi_input" class="block mb-2 text-sm font-medium text-gray-700">BMI (ถ้าไม่ทราบส่วนสูง)</label>
+                        <input type="number" id="bmi_input" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="เช่น 22.5">
+                    </div>
+                     <div>
+                        <label for="age" class="block mb-2 text-sm font-medium text-gray-700">อายุ (ปี) (ถ้ามี)</label>
+                        <input type="number" id="age" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="เช่น 25">
+                    </div>
+                    <div>
+                        <label for="target_weight" class="block mb-2 text-sm font-medium text-gray-700">น้ำหนักเป้าหมาย (kg)</label>
+                        <input type="number" id="target_weight" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300" placeholder="เช่น 55">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="activity" class="block mb-2 text-sm font-medium text-gray-700">ระดับกิจกรรม</label>
+                        <select id="activity" class="w-full bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-500 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors duration-300">
+                            <option value="1.2">ไม่ออกกำลังกายเลย (Sedentary)</option>
+                            <option value="1.375">ออกกำลังกายเบาๆ 1-3 วัน/สัปดาห์ (Lightly Active)</option>
+                            <option value="1.55">ออกกำลังกายปานกลาง 3-5 วัน/สัปดาห์ (Moderately Active)</option>
+                            <option value="1.725">ออกกำลังกายหนัก 6-7 วัน/สัปดาห์ (Very Active)</option>
+                            <option value="1.9">ออกกำลังกายหนักมาก + ทำงานใช้แรง (Extra Active)</option>
+                        </select>
+                    </div>
+                     <div id="target-bmi-check" class="md:col-span-2 text-center p-2 rounded-lg mt-2 hidden"></div>
+                </div>
+
+                <div id="error-message" class="text-red-600 text-center mt-4 hidden"></div>
+
+                <button id="calculate-btn" class="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                    คำนวณ
+                </button>
+            </div>
+        </div>
+
+        <div id="results-section" class="p-8 bg-white hidden">
+            <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">ผลลัพธ์สำหรับ <span id="result-name" class="font-bold"></span></h2>
+            <div id="user-info-summary" class="text-center text-gray-600 mb-6"></div>
+            
+            <div id="plans-container" class="space-y-8">
+                <!-- Plan cards will be dynamically inserted here -->
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+                 <button id="print-btn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+                    พิมพ์สรุปผล
+                </button>
+                <button id="image-btn" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+                    บันทึกเป็นรูปภาพ
+                </button>
+                <button id="recalculate-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+                    คำนวณใหม่
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const calculateBtn = document.getElementById('calculate-btn');
+        const recalculateBtn = document.getElementById('recalculate-btn');
+        const printBtn = document.getElementById('print-btn');
+        const imageBtn = document.getElementById('image-btn');
+        const formSection = document.getElementById('calculator-form');
+        const resultsSection = document.getElementById('results-section');
+        const errorMessage = document.getElementById('error-message');
+        const plansContainer = document.getElementById('plans-container');
+        const userInfoSummary = document.getElementById('user-info-summary');
+        
+        // Target BMI Check elements
+        const weightInput = document.getElementById('weight');
+        const heightInput = document.getElementById('height');
+        const bmiInput = document.getElementById('bmi_input');
+        const targetWeightInput = document.getElementById('target_weight');
+        const targetBmiCheckDiv = document.getElementById('target-bmi-check');
+
+
+        // Global variables to store plan data
+        let fastPlanData = {};
+        let safePlanData = {};
+        let singlePlanData = {};
+
+        // Event Listeners
+        calculateBtn.addEventListener('click', calculateNutrition);
+        recalculateBtn.addEventListener('click', resetCalculator);
+        printBtn.addEventListener('click', printSummary);
+        imageBtn.addEventListener('click', saveAsImage);
+
+        [weightInput, heightInput, bmiInput, targetWeightInput].forEach(input => {
+            input.addEventListener('input', checkTargetBmi);
+        });
+        
+        function checkTargetBmi() {
+            const currentWeight = parseFloat(weightInput.value);
+            const currentHeight = parseFloat(heightInput.value);
+            const currentBmi = parseFloat(bmiInput.value);
+            const targetWeight = parseFloat(targetWeightInput.value);
+
+            let heightForBmiCalc = 0;
+
+            if (currentHeight && currentHeight > 0) {
+                heightForBmiCalc = currentHeight;
+            } else if (currentWeight && currentWeight > 0 && currentBmi && currentBmi > 0) {
+                heightForBmiCalc = Math.sqrt(currentWeight / currentBmi) * 100;
+            }
+
+            if (targetWeight && targetWeight > 0 && heightForBmiCalc > 0) {
+                const targetBmi = targetWeight / ((heightForBmiCalc / 100) ** 2);
+                targetBmiCheckDiv.classList.remove('hidden');
+
+                if (targetBmi < 18.5) {
+                    targetBmiCheckDiv.innerHTML = `<strong>คำเตือน:</strong> น้ำหนักเป้าหมายจะทำให้ BMI ต่ำกว่าเกณฑ์ (${targetBmi.toFixed(2)})`;
+                    targetBmiCheckDiv.className = 'md:col-span-2 text-center p-2 rounded-lg mt-2 bg-red-100 text-red-700';
+                } else {
+                    targetBmiCheckDiv.innerHTML = `<strong>เป้าหมายเหมาะสม:</strong> BMI ของคุณจะอยู่ที่ประมาณ ${targetBmi.toFixed(2)}`;
+                    targetBmiCheckDiv.className = 'md:col-span-2 text-center p-2 rounded-lg mt-2 bg-green-100 text-green-700';
+                }
+            } else {
+                targetBmiCheckDiv.classList.add('hidden');
+            }
+        }
+
+
+        function calculateNutrition() {
+            // --- Get User Inputs ---
+            const name = document.getElementById('name').value;
+            const gender = document.getElementById('gender').value;
+            const age = parseFloat(document.getElementById('age').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const fatPercent = parseFloat(document.getElementById('fat_percent').value);
+            const bmiInputVal = parseFloat(document.getElementById('bmi_input').value);
+            const activity = parseFloat(document.getElementById('activity').value);
+            const targetWeight = parseFloat(document.getElementById('target_weight').value);
+            
+            // --- Validation Logic ---
+            if (!weight || isNaN(weight) || weight <= 0) {
+                errorMessage.textContent = 'กรุณากรอกน้ำหนักให้ถูกต้อง';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            if (!fatPercent || isNaN(fatPercent) || fatPercent <= 0) {
+                errorMessage.textContent = 'กรุณากรอกเปอร์เซ็นต์ไขมันให้ถูกต้อง';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            if ((!height || isNaN(height) || height <= 0) && (!bmiInputVal || isNaN(bmiInputVal) || bmiInputVal <= 0)) {
+                errorMessage.textContent = 'กรุณากรอก "ส่วนสูง" หรือ "BMI" อย่างใดอย่างหนึ่ง';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            errorMessage.classList.add('hidden');
+
+            // --- Calculations ---
+            const lbm = weight * (1 - (fatPercent / 100));
+            const bmr = 370 + (21.6 * lbm);
+            const tdee = bmr * activity;
+
+            let bmi = 0;
+            let heightForCalculation = 0;
+
+            if (bmiInputVal && !isNaN(bmiInputVal) && bmiInputVal > 0) {
+                bmi = bmiInputVal;
+                heightForCalculation = Math.sqrt(weight / bmi) * 100;
+            } else {
+                heightForCalculation = height;
+                bmi = weight / ((heightForCalculation / 100) ** 2);
+            }
+            
+            // --- Helper functions for calorie safety floor ---
+            const calorieWarningMessage = (gender, calories, planType = 'safe') => {
+                const minFemale = planType === 'fast' ? 1000 : 1200;
+                const minMale = planType === 'fast' ? 1300 : 1500;
+
+                if (gender === 'female' && calories < minFemale) {
+                    return `<p class="text-sm text-yellow-700 mt-4 text-center"><span class="font-bold">คำแนะนำ:</span> พลังงานที่คำนวณได้ต่ำเกินไป ระบบได้ปรับเป็น ${minFemale} kcal ซึ่งเป็นค่าต่ำสุดที่ปลอดภัย แนะนำให้เพิ่มการออกกำลังกายเพื่อสร้างการเผาผลาญที่ดีขึ้น</p>`;
+                }
+                if (gender === 'male' && calories < minMale) {
+                    return `<p class="text-sm text-yellow-700 mt-4 text-center"><span class="font-bold">คำแนะนำ:</span> พลังงานที่คำนวณได้ต่ำเกินไป ระบบได้ปรับเป็น ${minMale} kcal ซึ่งเป็นค่าต่ำสุดที่ปลอดภัย แนะนำให้เพิ่มการออกกำลังกายเพื่อสร้างการเผาผลาญที่ดีขึ้น</p>`;
+                }
+                return '';
+            };
+
+            const applyCalorieFloor = (gender, calories, planType = 'safe') => {
+                const minFemale = planType === 'fast' ? 1000 : 1200;
+                const minMale = planType === 'fast' ? 1300 : 1500;
+
+                if (gender === 'female' && calories < minFemale) return minFemale;
+                if (gender === 'male' && calories < minMale) return minMale;
+                return calories;
+            };
+
+
+            // --- Main Display Logic ---
+            if (bmi < 19) {
+                // --- Single Plan for Weight Gain ---
+                const targetCalories = tdee * 1.10; // TDEE + 10%
+                const goalText = 'เพิ่มน้ำหนักและกล้ามเนื้อ';
+                singlePlanData = createPlanObject(name, goalText, targetCalories, bmi, tdee, bmr, gender, fatPercent);
+                fastPlanData = {}; // Clear other plans
+                safePlanData = {};
+                displaySinglePlan(singlePlanData, weight, fatPercent, bmi);
+
+            } else {
+                // --- Two Plans for Weight Loss/Maintenance ---
+                let finalTargetWeight = 0;
+                let finalTargetBmi = 0;
+                let additionalWarning = '';
+                
+                if (targetWeight && !isNaN(targetWeight) && targetWeight > 0 && targetWeight < weight) {
+                    const targetBmi = targetWeight / ((heightForCalculation / 100) ** 2);
+                    finalTargetWeight = targetWeight;
+                    finalTargetBmi = targetBmi;
+
+                    if (targetBmi < 18.5) {
+                        const recommendedWeight = 19 * ((heightForCalculation / 100) ** 2);
+                        finalTargetWeight = recommendedWeight;
+                        finalTargetBmi = 19;
+                        additionalWarning = `<p class="text-sm text-yellow-700 mt-4 text-center"><span class="font-bold">หมายเหตุ:</span> น้ำหนักเป้าหมายเดิมต่ำเกินไป ระบบได้ปรับเป้าหมายใหม่เป็น ${recommendedWeight.toFixed(1)} kg (BMI 19) เพื่อความปลอดภัย</p>`;
+                    }
+                }
+
+                // Plan 1: Fast Loss
+                let fastPlanTargetCalories = tdee * 0.75; // TDEE - 25%
+                const fastCalorieWarning = calorieWarningMessage(gender, fastPlanTargetCalories, 'fast');
+                fastPlanTargetCalories = applyCalorieFloor(gender, fastPlanTargetCalories, 'fast');
+
+                // Plan 2: Safe Loss
+                let safePlanTargetCalories = tdee * 0.90; // TDEE - 10%
+                const safeCalorieWarning = calorieWarningMessage(gender, safePlanTargetCalories, 'safe');
+                safePlanTargetCalories = applyCalorieFloor(gender, safePlanTargetCalories, 'safe');
+
+                fastPlanData = createPlanObject(name, 'แผนลดเร็ว', fastPlanTargetCalories, bmi, tdee, bmr, gender, fatPercent, fastCalorieWarning, finalTargetBmi);
+                safePlanData = createPlanObject(name, 'แผนลดปลอดภัย', safePlanTargetCalories, bmi, tdee, bmr, gender, fatPercent, safeCalorieWarning, finalTargetBmi);
+                singlePlanData = {}; // Clear other plan
+                
+                displayTwoPlans(fastPlanData, safePlanData, weight, fatPercent, bmi, additionalWarning);
+            }
+            
+            // --- Show/Hide Sections ---
+            formSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+        }
+
+        function createPlanObject(name, goalText, targetCalories, bmi, tdee, bmr, gender, fatPercent, calorieWarning = '', finalTargetBmi = null) {
+            let proteinRatio, carbRatio, fatRatio, grainRatio, vegFruitRatio;
+
+            // New condition based on gender and high body fat percentage
+            if ((gender === 'female' && fatPercent > 35) || (gender === 'male' && fatPercent > 25)) {
+                carbRatio = 0.20; 
+                proteinRatio = 0.40; 
+                fatRatio = 0.40;
+            } else {
+                // Fallback to BMI-based logic
+                if (bmi >= 25) { carbRatio = 0.20; proteinRatio = 0.40; fatRatio = 0.40; } 
+                else if (bmi >= 23) { carbRatio = 0.30; proteinRatio = 0.35; fatRatio = 0.35; } 
+                else if (bmi >= 19) { carbRatio = 0.40; proteinRatio = 0.30; fatRatio = 0.30; } 
+                else { // BMI < 19 - Adjusted for weight and muscle gain
+                    carbRatio = 0.40; 
+                    proteinRatio = 0.30; 
+                    fatRatio = 0.30; 
+                }
+            }
+            
+            // Carb Breakdown Logic based on total carb ratio
+            if (carbRatio === 0.50) { grainRatio = 0.35; vegFruitRatio = 0.15; }
+            else if (carbRatio === 0.40) { grainRatio = 0.30; vegFruitRatio = 0.10; }
+            else if (carbRatio === 0.30) { grainRatio = 0.20; vegFruitRatio = 0.10; }
+            else { // This covers carbRatio = 0.20
+                grainRatio = 0.20;
+                vegFruitRatio = 0;
+            }
+
+            const proteinGrams = (targetCalories * proteinRatio) / 4;
+            const fatGrams = (targetCalories * fatRatio) / 9;
+            const grainsGrams = (targetCalories * grainRatio) / 4;
+            const vegFruitGrams = (targetCalories * vegFruitRatio) / 4;
+
+            return {
+                name: name,
+                goal: goalText,
+                calories: Math.round(targetCalories),
+                protein: Math.round(proteinGrams),
+                fat: Math.round(fatGrams),
+                grainsGrams: Math.round(grainsGrams),
+                vegFruitGrams: Math.round(vegFruitGrams),
+                grainCarbUnits: (grainsGrams / 15).toFixed(1),
+                vegFruitCarbUnits: (vegFruitGrams / 15).toFixed(1),
+                bmi: bmi.toFixed(2),
+                tdee: Math.round(tdee),
+                bmr: Math.round(bmr),
+                macroRatioText: vegFruitRatio > 0 
+                    ? `โปรตีน ${proteinRatio*100}%, ข้าวแป้ง ${grainRatio*100}%, ผัก/ผลไม้ ${vegFruitRatio*100}%, ไขมัน ${fatRatio*100}%`
+                    : `โปรตีน ${proteinRatio*100}%, คาร์โบไฮเดรต ${carbRatio*100}%, ไขมัน ${fatRatio*100}%`,
+                calorieWarning: calorieWarning,
+                finalTargetBmi: finalTargetBmi ? (finalTargetBmi > 0 ? finalTargetBmi.toFixed(2) : null) : null
+            };
+        }
+        
+        function generateMealBreakdownHTML(planData, mealOption, forPrint = false) {
+             const shakeProtein = 17 + 16; // 33
+            const shakeCarbs = 23; 
+            const hasVegFruit = planData.vegFruitGrams > 0;
+            let snackHTML = '';
+            let carbBreakdownHTML = '';
+            let finalHTML = '';
+            
+            const titleClass = forPrint ? "text-gray-800" : "text-blue-600";
+            const textClass = forPrint ? "text-gray-600" : "text-gray-700";
+            const strongClass = forPrint ? "text-black" : "text-gray-900";
+            const snackClass = forPrint ? "text-orange-600" : "text-yellow-700";
+            const containerClass = forPrint ? "border border-gray-200 p-4 rounded-lg" : "bg-gray-100 p-4 rounded-lg";
+
+            switch(mealOption) {
+                case 'one_replacement': {
+                    const remainingProtein = planData.protein - shakeProtein;
+                    const proteinPerMeal = remainingProtein / 2;
+                    
+                    if (hasVegFruit) {
+                        const remainingGrains = planData.grainsGrams - shakeCarbs > 0 ? planData.grainsGrams - shakeCarbs : 0;
+                        const remainingVegFruit = planData.vegFruitGrams;
+                        const grainUnitsPerMeal = (remainingGrains / 2) / 15;
+                        const vegFruitUnitsPerMeal = (remainingVegFruit / 2) / 15;
+                        carbBreakdownHTML = `ข้าวแป้ง <strong class="${strongClass}">${grainUnitsPerMeal.toFixed(1)} หน่วย</strong> | ผัก/ผลไม้ <strong class="${strongClass}">${vegFruitUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
+                    } else {
+                        const totalRemainingCarbs = planData.grainsGrams - shakeCarbs > 0 ? planData.grainsGrams - shakeCarbs : 0;
+                        const carbUnitsPerMeal = (totalRemainingCarbs / 2) / 15;
+                        carbBreakdownHTML = `คาร์โบไฮเดรต <strong class="${strongClass}">${carbUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
+                    }
+                    
+                    let finalProteinPerMeal = proteinPerMeal;
+                    if (proteinPerMeal > 30) {
+                        const snackProtein = (proteinPerMeal - 30) * 2;
+                        finalProteinPerMeal = 30;
+                        snackHTML = `<p class="text-sm ${snackClass} mt-2">และเพิ่มมื้อว่าง: โปรตีน <strong class="${strongClass}">${snackProtein.toFixed(0)}g</strong></p>`;
+                    }
+
+                    finalHTML = `
+                        <div class="${containerClass} text-center">
+                            <h4 class="font-bold ${titleClass}">แผนใช้ผลิตภัณฑ์ทดแทน 1 มื้อ</h4>
+                            <p class="text-sm ${textClass} mt-2">สำหรับ 2 มื้อปกติ (ต่อมื้อ) คุณควรได้รับสารอาหารประมาณ:</p>
+                            <p class="text-lg mt-2">
+                                โปรตีน <strong class="${strongClass}">${finalProteinPerMeal.toFixed(0)}g</strong> | 
+                                ${carbBreakdownHTML}
+                            </p>
+                            ${snackHTML}
+                        </div>
+                    `;
+                    break;
+                }
+                case 'two_replacements': {
+                    const remainingProtein = planData.protein - (2 * shakeProtein);
+
+                    if(hasVegFruit) {
+                        const remainingGrains = planData.grainsGrams - (2 * shakeCarbs) > 0 ? planData.grainsGrams - (2 * shakeCarbs) : 0;
+                        const remainingVegFruit = planData.vegFruitGrams;
+                        const grainUnits = remainingGrains / 15;
+                        const vegFruitUnits = remainingVegFruit / 15;
+                        carbBreakdownHTML = `ข้าวแป้ง <strong class="${strongClass}">${grainUnits.toFixed(1)} หน่วย</strong> | ผัก/ผลไม้ <strong class="${strongClass}">${vegFruitUnits.toFixed(1)} หน่วย</strong>`;
+                    } else {
+                        const totalRemainingCarbs = planData.grainsGrams - (2 * shakeCarbs) > 0 ? planData.grainsGrams - (2* shakeCarbs) : 0;
+                        const carbUnits = totalRemainingCarbs / 15;
+                        carbBreakdownHTML = `คาร์โบไฮเดรต <strong class="${strongClass}">${carbUnits.toFixed(1)} หน่วย</strong>`;
+                    }
+                    
+                    let finalProteinPerMeal = remainingProtein;
+                    if (remainingProtein > 30) {
+                        const snackProtein = remainingProtein - 30;
+                        finalProteinPerMeal = 30;
+                        snackHTML = `<p class="text-sm ${snackClass} mt-2">และเพิ่มมื้อว่าง: โปรตีน <strong class="${strongClass}">${snackProtein.toFixed(0)}g</strong></p>`;
+                    }
+
+                     finalHTML = `
+                        <div class="${containerClass} text-center">
+                            <h4 class="font-bold ${titleClass}">แผนใช้ผลิตภัณฑ์ทดแทน 2 มื้อ</h4>
+                            <p class="text-sm ${textClass} mt-2">สำหรับ 1 มื้อปกติที่เหลือ คุณต้องได้รับสารอาหาร:</p>
+                             <p class="text-lg mt-2">
+                                โปรตีน <strong class="${strongClass}">${finalProteinPerMeal.toFixed(0)}g</strong> | 
+                                ${carbBreakdownHTML}
+                            </p>
+                            ${snackHTML}
+                        </div>
+                    `;
+                    break;
+                }
+                case 'normal_meals':
+                default: {
+                    const proteinPerMeal = planData.protein / 3;
+
+                    if(hasVegFruit) {
+                        const grainUnitsPerMeal = (planData.grainsGrams / 3) / 15;
+                        const vegFruitUnitsPerMeal = (planData.vegFruitGrams / 3) / 15;
+                        carbBreakdownHTML = `ข้าวแป้ง <strong class="${strongClass}">${grainUnitsPerMeal.toFixed(1)} หน่วย</strong> | ผัก/ผลไม้ <strong class="${strongClass}">${vegFruitUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
+                    } else {
+                        const carbUnitsPerMeal = (planData.grainsGrams / 3) / 15;
+                        carbBreakdownHTML = `คาร์โบไฮเดรต <strong class="${strongClass}">${carbUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
+                    }
+
+                    let finalProteinPerMeal = proteinPerMeal;
+                    if (proteinPerMeal > 30) {
+                        const snackProtein = (proteinPerMeal - 30) * 3;
+                        finalProteinPerMeal = 30;
+                        snackHTML = `<p class="text-sm ${snackClass} mt-2">และเพิ่มมื้อว่าง: โปรตีน <strong class="${strongClass}">${snackProtein.toFixed(0)}g</strong></p>`;
+                    }
+
+                    finalHTML = `
+                        <div class="${containerClass} text-center">
+                            <h4 class="font-bold ${titleClass}">แผนอาหารปกติ 3 มื้อ</h4>
+                            <p class="text-sm ${textClass} mt-2">คุณควรได้รับสารอาหารต่อมื้อประมาณ:</p>
+                             <p class="text-lg mt-2">
+                                โปรตีน <strong class="${strongClass}">${finalProteinPerMeal.toFixed(0)}g</strong> | 
+                                ${carbBreakdownHTML}
+                            </p>
+                            ${snackHTML}
+                        </div>
+                    `;
+                    break;
+                }
+            }
+            return finalHTML;
+        }
+
+        function createPlanCardHTML(planData, type, additionalWarning = '') {
+            let title, borderColor, titleColor, warningText, targetBmiHTML = '';
+            
+            if (type === 'fast') {
+                title = 'แผนลดเร็ว';
+                borderColor = 'border-red-400';
+                titleColor = 'text-red-700';
+                warningText = `<div class="text-sm text-yellow-700 mt-4 text-center space-y-1">
+                    <p><span class="font-bold">ข้อควรระวัง:</span> การลดน้ำหนักเร็วเกินไปอาจทำให้สูญเสียมวลกล้ามเนื้อและส่งผลเสียต่อสุขภาพในระยะยาวได้</p>
+                    <p><span class="font-bold">สิ่งสำคัญ:</span> คือต้องรับประทานโปรตีนให้ถึงเป้าหมายเพื่อช่วยรักษามวลกล้ามเนื้อไว้ให้ได้มากที่สุด</p>
+                </div>`;
+            } else if (type === 'safe') {
+                title = 'แผนลดปลอดภัย';
+                borderColor = 'border-green-400';
+                titleColor = 'text-green-700';
+                warningText = `<p class="text-sm text-gray-700 mt-4 text-center">แผนนี้เป็นทางเลือกที่ปลอดภัยและยั่งยืนกว่า</p>`;
+            } else { // single plan (weight gain)
+                title = `${planData.goal}`;
+                borderColor = 'border-blue-400';
+                titleColor = 'text-blue-700';
+                warningText = '';
+            }
+            
+            if (planData.finalTargetBmi) {
+                 targetBmiHTML = `
+                    <div class="text-center mt-3 text-sm space-y-1">
+                        <p class="text-gray-700">BMI ที่เป้าหมาย: <span class="font-bold text-blue-600">${planData.finalTargetBmi}</span></p>
+                    </div>
+                 `;
+            }
+
+            const finalWarning = warningText + additionalWarning + planData.calorieWarning;
+
+            const hasVegFruit = parseFloat(planData.vegFruitCarbUnits) > 0;
+            const macroDisplayHTML = hasVegFruit
+                ? `<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div class="bg-blue-100 p-4 rounded-lg"><p class="font-bold text-blue-700">โปรตีน</p><p class="text-2xl font-bold text-blue-900">${planData.protein}g</p></div>
+                        <div class="bg-orange-100 p-4 rounded-lg"><p class="font-bold text-orange-700">ข้าวแป้ง</p><p class="text-2xl font-bold text-orange-900">${planData.grainCarbUnits} หน่วย</p></div>
+                        <div class="bg-green-100 p-4 rounded-lg"><p class="font-bold text-green-700">ผัก/ผลไม้</p><p class="text-2xl font-bold text-green-900">${planData.vegFruitCarbUnits} หน่วย</p></div>
+                        <div class="bg-yellow-100 p-4 rounded-lg"><p class="font-bold text-yellow-700">ไขมัน</p><p class="text-2xl font-bold text-yellow-900">${planData.fat}g</p></div>
+                    </div>`
+                : `<div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="bg-blue-100 p-4 rounded-lg"><p class="font-bold text-blue-700">โปรตีน</p><p class="text-2xl font-bold text-blue-900">${planData.protein}g</p></div>
+                        <div class="bg-green-100 p-4 rounded-lg"><p class="font-bold text-green-700">คาร์โบไฮเดรต</p><p class="text-2xl font-bold text-green-900">${planData.grainCarbUnits} หน่วย</p></div>
+                        <div class="bg-yellow-100 p-4 rounded-lg"><p class="font-bold text-yellow-700">ไขมัน</p><p class="text-2xl font-bold text-yellow-900">${planData.fat}g</p></div>
+                    </div>`;
+
+            const mealBreakdownContent = `
+                ${generateMealBreakdownHTML(planData, 'one_replacement')}
+                ${generateMealBreakdownHTML(planData, 'two_replacements')}
+                ${generateMealBreakdownHTML(planData, 'normal_meals')}
+            `;
+
+            return `
+                <div class="border-2 ${borderColor} rounded-2xl p-6">
+                    <h3 class="text-xl font-bold text-center ${titleColor} mb-4">${title}</h3>
+                    
+                    <div class="bg-gray-100 rounded-lg p-4 mb-4 text-center">
+                        <p class="text-gray-600">พลังงานที่ต้องการต่อวัน</p>
+                        <p class="text-3xl font-bold text-blue-800">${planData.calories} kcal</p>
+                        <div class="text-xs text-gray-500 text-center mt-1">
+                            <span>BMR: ${planData.bmr} kcal</span> | <span>TDEE: ${planData.tdee} kcal</span>
+                        </div>
+                    </div>
+                    
+                    ${targetBmiHTML}
+
+                    <h4 class="font-semibold text-center mb-2 mt-4 text-gray-700">สัดส่วนสารอาหารหลัก</h4>
+                    ${macroDisplayHTML}
+                    <p class="text-xs text-gray-500 text-center mt-2">*คำนวณจากสัดส่วน: ${planData.macroRatioText}</p>
+                    
+                    ${finalWarning}
+                    
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-center text-gray-700 mb-3">✨ การกระจายสารอาหารในแต่ละรูปแบบ</h4>
+                        <div class="mt-4 space-y-4">
+                            ${mealBreakdownContent}
+                        </div>
+                    </div>
+                </div>`;
+        }
+        
+        function displaySinglePlan(planData, weight, fatPercent, bmi, additionalWarning = '') {
+            document.getElementById('result-name').textContent = planData.name || 'คุณ';
+             userInfoSummary.innerHTML = `
+                <span class="mr-3">น้ำหนัก: <strong>${weight} kg</strong></span>
+                <span class="mr-3">|</span>
+                <span class="mr-3">ไขมัน: <strong>${fatPercent}%</strong></span>
+                <span class="mr-3">|</span>
+                <span>BMI: <strong>${bmi.toFixed(2)}</strong></span>
+            `;
+            plansContainer.innerHTML = createPlanCardHTML(planData, 'single', additionalWarning);
+        }
+
+        function displayTwoPlans(fastPlan, safePlan, weight, fatPercent, bmi, additionalWarning = '') {
+            document.getElementById('result-name').textContent = fastPlan.name || 'คุณ';
+            userInfoSummary.innerHTML = `
+                <span class="mr-3">น้ำหนัก: <strong>${weight} kg</strong></span>
+                <span class="mr-3">|</span>
+                <span class="mr-3">ไขมัน: <strong>${fatPercent}%</strong></span>
+                <span class="mr-3">|</span>
+                <span>BMI: <strong>${bmi.toFixed(2)}</strong></span>
+            `;
+            plansContainer.innerHTML = createPlanCardHTML(fastPlan, 'fast', additionalWarning) + createPlanCardHTML(safePlan, 'safe', additionalWarning);
+        }
+
+        function resetCalculator() {
+            const inputs = ['name', 'age', 'weight', 'height', 'fat_percent', 'bmi_input', 'target_weight'];
+            inputs.forEach(id => document.getElementById(id).value = '');
+            resultsSection.classList.add('hidden');
+            formSection.classList.remove('hidden');
+            plansContainer.innerHTML = '';
+            targetBmiCheckDiv.classList.add('hidden');
+        }
+
+        function generatePlanSummaryHTML(planData, overrideTitle = null) {
+            if (!planData || Object.keys(planData).length === 0) return '';
+            
+            const hasVegFruit = parseFloat(planData.vegFruitCarbUnits) > 0;
+            const macroHTML = hasVegFruit
+                ? `<div class="grid grid-cols-4 gap-4 text-center">
+                        <div><p class="font-bold text-gray-700">โปรตีน</p><p class="text-xl text-black">${planData.protein}g</p></div>
+                        <div><p class="font-bold text-gray-700">ข้าวแป้ง</p><p class="text-xl text-black">${planData.grainCarbUnits} หน่วย</p></div>
+                        <div><p class="font-bold text-gray-700">ผัก/ผลไม้</p><p class="text-xl text-black">${planData.vegFruitCarbUnits} หน่วย</p></div>
+                        <div><p class="font-bold text-gray-700">ไขมัน</p><p class="text-xl text-black">${planData.fat}g</p></div>
+                   </div>`
+                : `<div class="grid grid-cols-3 gap-4 text-center">
+                        <div><p class="font-bold text-gray-700">โปรตีน</p><p class="text-xl text-black">${planData.protein}g</p></div>
+                        <div><p class="font-bold text-gray-700">คาร์โบไฮเดรต</p><p class="text-xl text-black">${planData.grainCarbUnits} หน่วย</p></div>
+                        <div><p class="font-bold text-gray-700">ไขมัน</p><p class="text-xl text-black">${planData.fat}g</p></div>
+                   </div>`;
+            
+            const mealBreakdownForAllOptions = `
+                <div class="mt-6 space-y-4">
+                    <h4 class="font-semibold text-center text-gray-700 mb-2 mt-4">รายละเอียดการกระจายสารอาหาร</h4>
+                    ${generateMealBreakdownHTML(planData, 'one_replacement', true)}
+                    ${generateMealBreakdownHTML(planData, 'two_replacements', true)}
+                    ${generateMealBreakdownHTML(planData, 'normal_meals', true)}
+                </div>
+            `;
+
+            return `
+                <div class="border border-gray-300 rounded-2xl p-6 mb-6 break-inside-avoid">
+                    <h3 class="text-2xl font-bold text-center text-gray-800 mb-4">${overrideTitle || planData.goal}</h3>
+                    <div class="bg-gray-100 rounded-lg p-4 mb-4 text-center">
+                        <p class="text-gray-600">พลังงานที่ต้องการต่อวัน</p>
+                        <p class="text-3xl font-bold text-blue-700">${planData.calories} kcal</p>
+                        <div class="text-xs text-gray-500 text-center mt-1">
+                            <span>BMR: ${planData.bmr} kcal</span> | <span>TDEE: ${planData.tdee} kcal</span>
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-center text-gray-700 mb-2 mt-4">สัดส่วนสารอาหารหลัก</h4>
+                    ${macroHTML}
+                     <p class="text-xs text-gray-500 text-center mt-2">*คำนวณจากสัดส่วน: ${planData.macroRatioText}</p>
+                     ${mealBreakdownForAllOptions}
+                </div>
+            `;
+        }
+
+        function printSummary() {
+            const name = document.getElementById('name').value.trim() || 'คุณ';
+            const weight = weightInput.value;
+            const fatPercent = document.getElementById('fat_percent').value;
+            const bmi = singlePlanData.bmi || fastPlanData.bmi;
+
+            let plansHTML = '';
+            if (Object.keys(singlePlanData).length > 0) {
+                plansHTML += generatePlanSummaryHTML(singlePlanData);
+            } else {
+                plansHTML += generatePlanSummaryHTML(fastPlanData, 'แผนลดเร็ว');
+                plansHTML += generatePlanSummaryHTML(safePlanData, 'แผนลดปลอดภัย');
+            }
+
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="th">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>สรุปผลสำหรับ ${name}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Kanit', sans-serif; -webkit-print-color-adjust: exact; }
+                        @media print {
+                            .no-print { display: none; }
+                            body { margin: 1cm; }
+                        }
+                        .break-inside-avoid { page-break-inside: avoid; }
+                    </style>
+                </head>
+                <body class="bg-white text-gray-800 p-8">
+                    <div class="max-w-4xl mx-auto">
+                        <h1 class="text-3xl font-bold text-center text-blue-700 mb-4">สรุปผลการคำนวณ</h1>
+                        <h2 class="text-xl text-center text-gray-600 mb-8">สำหรับคุณ ${name}</h2>
+                        <div class="bg-gray-100 rounded-lg p-4 mb-8 text-center text-lg">
+                           <span class="mr-3">น้ำหนัก: <strong class="text-black">${weight} kg</strong></span>
+                            <span class="mr-3">|</span>
+                            <span class="mr-3">ไขมัน: <strong class="text-black">${fatPercent}%</strong></span>
+                            <span class="mr-3">|</span>
+                            <span>BMI: <strong class="text-black">${bmi}</strong></span>
+                        </div>
+                        ${plansHTML}
+                        <div class="text-center mt-12 no-print">
+                            <button onclick="window.print()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">พิมพ์</button>
+                            <button onclick="window.close()" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg ml-4">ปิด</button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            reportWindow.document.close();
+            reportWindow.focus();
+            setTimeout(() => { reportWindow.print(); }, 500); // Wait for content to render before printing
+        }
+        
+        function saveAsImage() {
+            const name = document.getElementById('name').value.trim() || 'คุณ';
+            const filename = `แผนการควบคุมน้ำหนักของคุณ ${name}.png`;
+            
+            const weight = weightInput.value;
+            const fatPercent = document.getElementById('fat_percent').value;
+            const bmi = singlePlanData.bmi || fastPlanData.bmi;
+
+            let plansHTML = '';
+            if (Object.keys(singlePlanData).length > 0) {
+                plansHTML += generatePlanSummaryHTML(singlePlanData, null, true);
+            } else {
+                plansHTML += generatePlanSummaryHTML(fastPlanData, 'แผนลดเร็ว', true);
+                plansHTML += generatePlanSummaryHTML(safePlanData, 'แผนลดปลอดภัย', true);
+            }
+            
+            const reportElementHTML = `
+                <div class="max-w-4xl mx-auto p-8 bg-white text-gray-800" style="font-family: 'Kanit', sans-serif; width: 800px;">
+                    <h1 class="text-3xl font-bold text-center text-blue-700 mb-4" style="color: #1d4ed8 !important;">สรุปผลการคำนวณ</h1>
+                    <h2 class="text-xl text-center text-gray-600 mb-8" style="color: #4b5563 !important;">สำหรับคุณ ${name}</h2>
+                    <div class="bg-gray-100 rounded-lg p-4 mb-8 text-center text-lg" style="background-color: #f3f4f6 !important;">
+                       <span class="mr-3">น้ำหนัก: <strong class="text-black">${weight} kg</strong></span>
+                        <span class="mr-3">|</span>
+                        <span class="mr-3">ไขมัน: <strong class="text-black">${fatPercent}%</strong></span>
+                        <span class="mr-3">|</span>
+                        <span>BMI: <strong class="text-black">${bmi}</strong></span>
+                    </div>
+                    ${plansHTML}
+                </div>
+            `;
+            
+            const elementToRender = document.createElement('div');
+            // We need to inject tailwind for html2canvas to render styles correctly
+            const tailwindScript = document.createElement('script');
+            tailwindScript.src = "https://cdn.tailwindcss.com";
+            elementToRender.appendChild(tailwindScript);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = reportElementHTML;
+            elementToRender.appendChild(contentDiv);
+
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.appendChild(elementToRender);
+            document.body.appendChild(tempContainer);
+            
+            // Wait a bit for tailwind to apply styles
+            setTimeout(() => {
+                html2canvas(contentDiv, {
+                    useCORS: true,
+                    scale: 2 
+                }).then(canvas => {
+                    const image = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = image;
+                    link.download = filename;
+                    link.click();
+                    document.body.removeChild(tempContainer);
+                }).catch(err => {
+                    console.error("เกิดข้อผิดพลาดในการสร้างรูปภาพ:", err);
+                    document.body.removeChild(tempContainer);
+                });
+            }, 500);
+        }
+
+        function saveAsPdf() {
+            const name = document.getElementById('name').value.trim() || 'คุณ';
+            const filename = `แผนการควบคุมน้ำหนักของคุณ ${name}.pdf`;
+            
+            const weight = weightInput.value;
+            const fatPercent = document.getElementById('fat_percent').value;
+            const bmi = singlePlanData.bmi || fastPlanData.bmi;
+
+            let plansHTML = '';
+            if (Object.keys(singlePlanData).length > 0) {
+                plansHTML += generatePlanSummaryHTML(singlePlanData, null, true);
+            } else {
+                plansHTML += generatePlanSummaryHTML(fastPlanData, 'แผนลดเร็ว', true);
+                plansHTML += generatePlanSummaryHTML(safePlanData, 'แผนลดปลอดภัย', true);
+            }
+            
+            const reportElementHTML = `
+                <div style="font-family: 'Kanit', sans-serif; color: black !important;">
+                    ${plansHTML}
+                </div>
+            `;
+            
+            const fullHtml = `
+            <!DOCTYPE html>
+            <html lang="th">
+            <head>
+                <meta charset="UTF-8">
+                <script src="https://cdn.tailwindcss.com"><\/script>
+                <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
+                <style>
+                    body { 
+                        font-family: 'Kanit', sans-serif; 
+                        color: black !important;
+                    }
+                    * {
+                        color: black !important;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="max-w-4xl mx-auto p-8 bg-white text-gray-800">
+                        <h1 class="text-3xl font-bold text-center text-blue-700 mb-4" style="color: #1d4ed8 !important;">สรุปผลการคำนวณ</h1>
+                        <h2 class="text-xl text-center text-gray-600 mb-8" style="color: #4b5563 !important;">สำหรับคุณ ${name}</h2>
+                        <div class="bg-gray-100 rounded-lg p-4 mb-8 text-center text-lg" style="background-color: #f3f4f6 !important;">
+                           <span class="mr-3">น้ำหนัก: <strong class="text-black">${weight} kg</strong></span>
+                            <span class="mr-3">|</span>
+                            <span class="mr-3">ไขมัน: <strong class="text-black">${fatPercent}%</strong></span>
+                            <span class="mr-3">|</span>
+                            <span>BMI: <strong class="text-black">${bmi}</strong></span>
+                        </div>
+                        ${plansHTML}
+                    </div>
+            </body>
+            </html>
+            `;
+
+
+            const elementToRender = document.createElement('div');
+            elementToRender.innerHTML = fullHtml;
+
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.appendChild(elementToRender);
+            document.body.appendChild(tempContainer);
+
+            const opt = {
+              margin:       0.5,
+              filename:     filename,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, useCORS: true },
+              jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            setTimeout(() => {
+                html2pdf().set(opt).from(elementToRender.querySelector('body > div')).save().then(() => {
+                    document.body.removeChild(tempContainer);
+                });
+            }, 500);
+        }
+
+    </script>
+</body>
+</html>
+
