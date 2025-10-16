@@ -13,18 +13,14 @@
         body {
             font-family: 'Kanit', sans-serif;
         }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+        .meal-plan-toggle {
+            transition: all 0.2s ease-in-out;
+            border: 2px solid transparent;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .active-toggle {
+            background-color: #3b82f6 !important; /* blue-600 */
+            color: white !important;
+            border-color: #1d4ed8; /* blue-800 */
         }
     </style>
 </head>
@@ -357,126 +353,60 @@
             };
         }
         
-        function generateMealBreakdownHTML(planData, mealOption, forPrint = false) {
-             const shakeProtein = 17 + 16; // 33
-            const shakeCarbs = 23; 
-            const hasVegFruit = planData.vegFruitGrams > 0;
-            let snackHTML = '';
-            let carbBreakdownHTML = '';
-            let finalHTML = '';
-            
+        function generateSimplifiedMealBreakdownHTML(planData, numberOfShakes = 1, forPrint = false) {
+            const shakeProtein = 33;
+            const shakeCarbsGrams = 23;
+
+            const totalShakeProtein = shakeProtein * numberOfShakes;
+            const totalShakeCarbs = shakeCarbsGrams * numberOfShakes;
+
+            const remainingProtein = planData.protein - totalShakeProtein;
+            const totalCarbsGrams = planData.grainsGrams + planData.vegFruitGrams;
+            const remainingCarbsGrams = totalCarbsGrams - totalShakeCarbs;
+            const remainingCarbUnits = (remainingCarbsGrams / 15).toFixed(1);
+            const remainingFat = planData.fat;
+
             const titleClass = forPrint ? "text-gray-800" : "text-blue-600";
             const textClass = forPrint ? "text-gray-600" : "text-gray-700";
             const strongClass = forPrint ? "text-black" : "text-gray-900";
-            const snackClass = forPrint ? "text-orange-600" : "text-yellow-700";
             const containerClass = forPrint ? "border border-gray-200 p-4 rounded-lg" : "bg-gray-100 p-4 rounded-lg";
+            const gridClass = forPrint ? "grid grid-cols-2 gap-4 text-center" : "grid grid-cols-2 gap-4 text-center";
 
-            switch(mealOption) {
-                case 'one_replacement': {
-                    const remainingProtein = planData.protein - shakeProtein;
-                    const proteinPerMeal = remainingProtein / 2;
-                    
-                    if (hasVegFruit) {
-                        const remainingGrains = planData.grainsGrams - shakeCarbs > 0 ? planData.grainsGrams - shakeCarbs : 0;
-                        const remainingVegFruit = planData.vegFruitGrams;
-                        const grainUnitsPerMeal = (remainingGrains / 2) / 15;
-                        const vegFruitUnitsPerMeal = (remainingVegFruit / 2) / 15;
-                        carbBreakdownHTML = `ข้าวแป้ง <strong class="${strongClass}">${grainUnitsPerMeal.toFixed(1)} หน่วย</strong> | ผัก/ผลไม้ <strong class="${strongClass}">${vegFruitUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
-                    } else {
-                        const totalRemainingCarbs = planData.grainsGrams - shakeCarbs > 0 ? planData.grainsGrams - shakeCarbs : 0;
-                        const carbUnitsPerMeal = (totalRemainingCarbs / 2) / 15;
-                        carbBreakdownHTML = `คาร์โบไฮเดรต <strong class="${strongClass}">${carbUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
-                    }
-                    
-                    let finalProteinPerMeal = proteinPerMeal;
-                    if (proteinPerMeal > 30) {
-                        const snackProtein = (proteinPerMeal - 30) * 2;
-                        finalProteinPerMeal = 30;
-                        snackHTML = `<p class="text-sm ${snackClass} mt-2">และเพิ่มมื้อว่าง: โปรตีน <strong class="${strongClass}">${snackProtein.toFixed(0)}g</strong></p>`;
-                    }
-
-                    finalHTML = `
-                        <div class="${containerClass} text-center">
-                            <h4 class="font-bold ${titleClass}">แผนใช้ผลิตภัณฑ์ทดแทน 1 มื้อ</h4>
-                            <p class="text-sm ${textClass} mt-2">สำหรับ 2 มื้อปกติ (ต่อมื้อ) คุณควรได้รับสารอาหารประมาณ:</p>
-                            <p class="text-lg mt-2">
-                                โปรตีน <strong class="${strongClass}">${finalProteinPerMeal.toFixed(0)}g</strong> | 
-                                ${carbBreakdownHTML}
-                            </p>
-                            ${snackHTML}
+            let finalHTML = `
+                <div class="${containerClass} text-center">
+                    <h4 class="font-bold ${titleClass}">ผลิตภัณฑ์ทดแทนมื้ออาหาร (BodyKey)</h4>
+                    <p class="text-sm ${textClass} mt-2">(สำหรับ ${numberOfShakes} มื้อ)</p>
+                    <div class="${gridClass} mt-2">
+                        <div>
+                            <p class="font-semibold text-blue-700">โปรตีนรวม</p>
+                            <p class="text-xl font-bold ${strongClass}">${totalShakeProtein}g</p>
                         </div>
-                    `;
-                    break;
-                }
-                case 'two_replacements': {
-                    const remainingProtein = planData.protein - (2 * shakeProtein);
-
-                    if(hasVegFruit) {
-                        const remainingGrains = planData.grainsGrams - (2 * shakeCarbs) > 0 ? planData.grainsGrams - (2 * shakeCarbs) : 0;
-                        const remainingVegFruit = planData.vegFruitGrams;
-                        const grainUnits = remainingGrains / 15;
-                        const vegFruitUnits = remainingVegFruit / 15;
-                        carbBreakdownHTML = `ข้าวแป้ง <strong class="${strongClass}">${grainUnits.toFixed(1)} หน่วย</strong> | ผัก/ผลไม้ <strong class="${strongClass}">${vegFruitUnits.toFixed(1)} หน่วย</strong>`;
-                    } else {
-                        const totalRemainingCarbs = planData.grainsGrams - (2 * shakeCarbs) > 0 ? planData.grainsGrams - (2* shakeCarbs) : 0;
-                        const carbUnits = totalRemainingCarbs / 15;
-                        carbBreakdownHTML = `คาร์โบไฮเดรต <strong class="${strongClass}">${carbUnits.toFixed(1)} หน่วย</strong>`;
-                    }
-                    
-                    let finalProteinPerMeal = remainingProtein;
-                    if (remainingProtein > 30) {
-                        const snackProtein = remainingProtein - 30;
-                        finalProteinPerMeal = 30;
-                        snackHTML = `<p class="text-sm ${snackClass} mt-2">และเพิ่มมื้อว่าง: โปรตีน <strong class="${strongClass}">${snackProtein.toFixed(0)}g</strong></p>`;
-                    }
-
-                     finalHTML = `
-                        <div class="${containerClass} text-center">
-                            <h4 class="font-bold ${titleClass}">แผนใช้ผลิตภัณฑ์ทดแทน 2 มื้อ</h4>
-                            <p class="text-sm ${textClass} mt-2">สำหรับ 1 มื้อปกติที่เหลือ คุณต้องได้รับสารอาหาร:</p>
-                             <p class="text-lg mt-2">
-                                โปรตีน <strong class="${strongClass}">${finalProteinPerMeal.toFixed(0)}g</strong> | 
-                                ${carbBreakdownHTML}
-                            </p>
-                            ${snackHTML}
+                        <div>
+                            <p class="font-semibold text-green-700">คาร์โบไฮเดรตรวม</p>
+                            <p class="text-xl font-bold ${strongClass}">${totalShakeCarbs}g</p>
                         </div>
-                    `;
-                    break;
-                }
-                case 'normal_meals':
-                default: {
-                    const proteinPerMeal = planData.protein / 3;
+                    </div>
+                </div>
 
-                    if(hasVegFruit) {
-                        const grainUnitsPerMeal = (planData.grainsGrams / 3) / 15;
-                        const vegFruitUnitsPerMeal = (planData.vegFruitGrams / 3) / 15;
-                        carbBreakdownHTML = `ข้าวแป้ง <strong class="${strongClass}">${grainUnitsPerMeal.toFixed(1)} หน่วย</strong> | ผัก/ผลไม้ <strong class="${strongClass}">${vegFruitUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
-                    } else {
-                        const carbUnitsPerMeal = (planData.grainsGrams / 3) / 15;
-                        carbBreakdownHTML = `คาร์โบไฮเดรต <strong class="${strongClass}">${carbUnitsPerMeal.toFixed(1)} หน่วย</strong>`;
-                    }
-
-                    let finalProteinPerMeal = proteinPerMeal;
-                    if (proteinPerMeal > 30) {
-                        const snackProtein = (proteinPerMeal - 30) * 3;
-                        finalProteinPerMeal = 30;
-                        snackHTML = `<p class="text-sm ${snackClass} mt-2">และเพิ่มมื้อว่าง: โปรตีน <strong class="${strongClass}">${snackProtein.toFixed(0)}g</strong></p>`;
-                    }
-
-                    finalHTML = `
-                        <div class="${containerClass} text-center">
-                            <h4 class="font-bold ${titleClass}">แผนอาหารปกติ 3 มื้อ</h4>
-                            <p class="text-sm ${textClass} mt-2">คุณควรได้รับสารอาหารต่อมื้อประมาณ:</p>
-                             <p class="text-lg mt-2">
-                                โปรตีน <strong class="${strongClass}">${finalProteinPerMeal.toFixed(0)}g</strong> | 
-                                ${carbBreakdownHTML}
-                            </p>
-                            ${snackHTML}
+                <div class="${containerClass} text-center mt-4">
+                    <h4 class="font-bold ${titleClass}">สารอาหารสำหรับมื้อปกติที่เหลือ</h4>
+                    <p class="text-sm ${textClass} mt-2">(รวมสำหรับมื้อที่เหลือทั้งหมดใน 1 วัน)</p>
+                    <div class="grid grid-cols-3 gap-4 text-center mt-2">
+                        <div>
+                            <p class="font-semibold text-blue-700">โปรตีน</p>
+                            <p class="text-xl font-bold ${strongClass}">${remainingProtein.toFixed(0)}g</p>
                         </div>
-                    `;
-                    break;
-                }
-            }
+                        <div>
+                            <p class="font-semibold text-green-700">คาร์โบไฮเดรต</p>
+                            <p class="text-xl font-bold ${strongClass}">${remainingCarbUnits > 0 ? remainingCarbUnits : 0} หน่วย</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-yellow-700">ไขมัน</p>
+                            <p class="text-xl font-bold ${strongClass}">${remainingFat.toFixed(0)}g</p>
+                        </div>
+                    </div>
+                </div>
+            `;
             return finalHTML;
         }
 
@@ -527,11 +457,7 @@
                         <div class="bg-yellow-100 p-4 rounded-lg"><p class="font-bold text-yellow-700">ไขมัน</p><p class="text-2xl font-bold text-yellow-900">${planData.fat}g</p></div>
                     </div>`;
 
-            const mealBreakdownContent = `
-                ${generateMealBreakdownHTML(planData, 'one_replacement')}
-                ${generateMealBreakdownHTML(planData, 'two_replacements')}
-                ${generateMealBreakdownHTML(planData, 'normal_meals')}
-            `;
+            const mealBreakdownContent = generateSimplifiedMealBreakdownHTML(planData, 1);
 
             return `
                 <div class="border-2 ${borderColor} rounded-2xl p-6">
@@ -547,21 +473,55 @@
                     
                     ${targetBmiHTML}
 
-                    <h4 class="font-semibold text-center mb-2 mt-4 text-gray-700">สัดส่วนสารอาหารหลัก</h4>
+                    <h4 class="font-semibold text-center mb-2 mt-4 text-gray-700">สัดส่วนสารอาหารหลัก (รวมต่อวัน)</h4>
                     ${macroDisplayHTML}
                     <p class="text-xs text-gray-500 text-center mt-2">*คำนวณจากสัดส่วน: ${planData.macroRatioText}</p>
                     
                     ${finalWarning}
                     
                     <div class="mt-6">
-                        <h4 class="font-semibold text-center text-gray-700 mb-3">✨ การกระจายสารอาหารในแต่ละรูปแบบ</h4>
-                        <div class="mt-4 space-y-4">
+                        <h4 class="font-semibold text-center text-gray-700 mb-3">✨ การจัดการมื้ออาหาร</h4>
+                        <div class="flex justify-center items-center space-x-2 mb-4 bg-gray-200 rounded-lg p-1">
+                           <button data-plan-type="${type}" data-shakes="1" class="meal-plan-toggle w-full py-2 px-4 rounded-md font-semibold text-gray-700 bg-gray-200 active-toggle">1 BodyKey</button>
+                           <button data-plan-type="${type}" data-shakes="2" class="meal-plan-toggle w-full py-2 px-4 rounded-md font-semibold text-gray-700 bg-gray-200">2 BodyKey</button>
+                        </div>
+                        <div id="meal-breakdown-container-${type}" class="mt-4 space-y-4">
                             ${mealBreakdownContent}
                         </div>
                     </div>
                 </div>`;
         }
         
+        function updateMealBreakdownView(planType, numberOfShakes) {
+            let planData;
+            if (planType === 'fast') planData = fastPlanData;
+            else if (planType === 'safe') planData = safePlanData;
+            else planData = singlePlanData;
+
+            if (planData && Object.keys(planData).length > 0) {
+                const container = document.getElementById(`meal-breakdown-container-${planType}`);
+                container.innerHTML = generateSimplifiedMealBreakdownHTML(planData, numberOfShakes);
+            }
+        }
+
+        function addPlanToggleListeners() {
+            document.querySelectorAll('.meal-plan-toggle').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const target = e.currentTarget;
+                    const planType = target.dataset.planType;
+                    const shakes = parseInt(target.dataset.shakes, 10);
+
+                    // Update button styles
+                    const parent = target.parentElement;
+                    parent.querySelectorAll('.meal-plan-toggle').forEach(btn => btn.classList.remove('active-toggle'));
+                    target.classList.add('active-toggle');
+
+                    // Update content
+                    updateMealBreakdownView(planType, shakes);
+                });
+            });
+        }
+
         function displaySinglePlan(planData, weight, fatPercent, bmi, additionalWarning = '') {
             document.getElementById('result-name').textContent = planData.name || 'คุณ';
              userInfoSummary.innerHTML = `
@@ -572,6 +532,7 @@
                 <span>BMI: <strong>${bmi.toFixed(2)}</strong></span>
             `;
             plansContainer.innerHTML = createPlanCardHTML(planData, 'single', additionalWarning);
+            addPlanToggleListeners();
         }
 
         function displayTwoPlans(fastPlan, safePlan, weight, fatPercent, bmi, additionalWarning = '') {
@@ -584,6 +545,7 @@
                 <span>BMI: <strong>${bmi.toFixed(2)}</strong></span>
             `;
             plansContainer.innerHTML = createPlanCardHTML(fastPlan, 'fast', additionalWarning) + createPlanCardHTML(safePlan, 'safe', additionalWarning);
+            addPlanToggleListeners();
         }
 
         function resetCalculator() {
@@ -612,14 +574,9 @@
                         <div><p class="font-bold text-gray-700">ไขมัน</p><p class="text-xl text-black">${planData.fat}g</p></div>
                    </div>`;
             
-            const mealBreakdownForAllOptions = `
-                <div class="mt-6 space-y-4">
-                    <h4 class="font-semibold text-center text-gray-700 mb-2 mt-4">รายละเอียดการกระจายสารอาหาร</h4>
-                    ${generateMealBreakdownHTML(planData, 'one_replacement', true)}
-                    ${generateMealBreakdownHTML(planData, 'two_replacements', true)}
-                    ${generateMealBreakdownHTML(planData, 'normal_meals', true)}
-                </div>
-            `;
+            const mealBreakdownPlan1 = `<div class="mt-4"><h5 class="font-bold text-center text-gray-800 mb-2">แผนใช้ BodyKey 1 มื้อ</h5>${generateSimplifiedMealBreakdownHTML(planData, 1, true)}</div>`;
+            const mealBreakdownPlan2 = `<div class="mt-4"><h5 class="font-bold text-center text-gray-800 mb-2">แผนใช้ BodyKey 2 มื้อ</h5>${generateSimplifiedMealBreakdownHTML(planData, 2, true)}</div>`;
+
 
             return `
                 <div class="border border-gray-300 rounded-2xl p-6 mb-6 break-inside-avoid">
@@ -631,10 +588,14 @@
                             <span>BMR: ${planData.bmr} kcal</span> | <span>TDEE: ${planData.tdee} kcal</span>
                         </div>
                     </div>
-                    <h4 class="font-semibold text-center text-gray-700 mb-2 mt-4">สัดส่วนสารอาหารหลัก</h4>
+                    <h4 class="font-semibold text-center text-gray-700 mb-2 mt-4">สัดส่วนสารอาหารหลัก (รวมต่อวัน)</h4>
                     ${macroHTML}
                      <p class="text-xs text-gray-500 text-center mt-2">*คำนวณจากสัดส่วน: ${planData.macroRatioText}</p>
-                     ${mealBreakdownForAllOptions}
+                     <div class="mt-6 space-y-4">
+                        <h4 class="font-semibold text-center text-gray-700 mb-2 mt-4">การจัดการมื้ออาหาร</h4>
+                        ${mealBreakdownPlan1}
+                        ${mealBreakdownPlan2}
+                    </div>
                 </div>
             `;
         }
@@ -761,88 +722,6 @@
                 });
             }, 500);
         }
-
-        function saveAsPdf() {
-            const name = document.getElementById('name').value.trim() || 'คุณ';
-            const filename = `แผนการควบคุมน้ำหนักของคุณ ${name}.pdf`;
-            
-            const weight = weightInput.value;
-            const fatPercent = document.getElementById('fat_percent').value;
-            const bmi = singlePlanData.bmi || fastPlanData.bmi;
-
-            let plansHTML = '';
-            if (Object.keys(singlePlanData).length > 0) {
-                plansHTML += generatePlanSummaryHTML(singlePlanData, null, true);
-            } else {
-                plansHTML += generatePlanSummaryHTML(fastPlanData, 'แผนลดเร็ว', true);
-                plansHTML += generatePlanSummaryHTML(safePlanData, 'แผนลดปลอดภัย', true);
-            }
-            
-            const reportElementHTML = `
-                <div style="font-family: 'Kanit', sans-serif; color: black !important;">
-                    ${plansHTML}
-                </div>
-            `;
-            
-            const fullHtml = `
-            <!DOCTYPE html>
-            <html lang="th">
-            <head>
-                <meta charset="UTF-8">
-                <script src="https://cdn.tailwindcss.com"><\/script>
-                <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700&display=swap" rel="stylesheet">
-                <style>
-                    body { 
-                        font-family: 'Kanit', sans-serif; 
-                        color: black !important;
-                    }
-                    * {
-                        color: black !important;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="max-w-4xl mx-auto p-8 bg-white text-gray-800">
-                        <h1 class="text-3xl font-bold text-center text-blue-700 mb-4" style="color: #1d4ed8 !important;">สรุปผลการคำนวณ</h1>
-                        <h2 class="text-xl text-center text-gray-600 mb-8" style="color: #4b5563 !important;">สำหรับคุณ ${name}</h2>
-                        <div class="bg-gray-100 rounded-lg p-4 mb-8 text-center text-lg" style="background-color: #f3f4f6 !important;">
-                           <span class="mr-3">น้ำหนัก: <strong class="text-black">${weight} kg</strong></span>
-                            <span class="mr-3">|</span>
-                            <span class="mr-3">ไขมัน: <strong class="text-black">${fatPercent}%</strong></span>
-                            <span class="mr-3">|</span>
-                            <span>BMI: <strong class="text-black">${bmi}</strong></span>
-                        </div>
-                        ${plansHTML}
-                    </div>
-            </body>
-            </html>
-            `;
-
-
-            const elementToRender = document.createElement('div');
-            elementToRender.innerHTML = fullHtml;
-
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'absolute';
-            tempContainer.style.left = '-9999px';
-            tempContainer.appendChild(elementToRender);
-            document.body.appendChild(tempContainer);
-
-            const opt = {
-              margin:       0.5,
-              filename:     filename,
-              image:        { type: 'jpeg', quality: 0.98 },
-              html2canvas:  { scale: 2, useCORS: true },
-              jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-
-            setTimeout(() => {
-                html2pdf().set(opt).from(elementToRender.querySelector('body > div')).save().then(() => {
-                    document.body.removeChild(tempContainer);
-                });
-            }, 500);
-        }
-
     </script>
 </body>
 </html>
